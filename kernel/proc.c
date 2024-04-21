@@ -55,6 +55,7 @@ procinit(void)
       initlock(&p->lock, "proc");
       p->state = UNUSED;
       p->kstack = KSTACK((int) (p - proc));
+      p->syscall_count = 0;
   }
 }
 
@@ -680,4 +681,36 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+int
+print_info(int n) {
+  int count = 0;
+  if (n == 0) {
+    //printf("Processes.\n");
+    struct proc *p;
+    for(p = proc; p < &proc[NPROC]; p++){
+      if (p->state == UNUSED || p->state == USED) continue;
+      count++;
+    }
+    return count;
+  }
+
+  else if (n == 1) {
+    //printf("Syscalls.\n");
+    struct proc *p;
+    for(p = proc; p < &proc[NPROC]; p++){
+      if (p->state == UNUSED || p->state == USED) continue;
+      count+=p->syscall_count;
+      printf("%s Process %d: %d\n", p->name, p->pid, p->syscall_count);
+    }
+    return count;
+  }
+
+  else if (n == 2) {
+    //printf("Memory.\n");
+    return getNumPages();
+  }
+  printf("Error\n");
+  return -1;
 }
