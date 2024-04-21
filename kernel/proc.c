@@ -684,10 +684,9 @@ procdump(void)
 }
 
 int
-print_info(int n) {
+print_sysinfo(int n) {
   int count = 0;
   if (n == 0) {
-    //printf("Processes.\n");
     struct proc *p;
     for(p = proc; p < &proc[NPROC]; p++){
       if (p->state == UNUSED || p->state == USED) continue;
@@ -697,7 +696,6 @@ print_info(int n) {
   }
 
   else if (n == 1) {
-    //printf("Syscalls.\n");
     struct proc *p;
     for(p = proc; p < &proc[NPROC]; p++){
       if (p->state == UNUSED || p->state == USED) continue;
@@ -708,7 +706,6 @@ print_info(int n) {
   }
 
   else if (n == 2) {
-    //printf("Memory.\n");
     return getNumPages();
   }
   printf("Error\n");
