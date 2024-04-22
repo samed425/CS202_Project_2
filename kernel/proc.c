@@ -698,9 +698,9 @@ print_sysinfo(int n) {
   else if (n == 1) {
     struct proc *p;
     for(p = proc; p < &proc[NPROC]; p++){
-      if (p->state == UNUSED || p->state == USED) continue;
+      //if (p->state == UNUSED || p->state == USED) continue;
       count+=p->syscall_count;
-      printf("%s Process %d: %d\n", p->name, p->pid, p->syscall_count);
+      //printf("%s Process %d: %d\n", p->name, p->pid, p->syscall_count);
     }
     return count;
   }
@@ -708,6 +708,6 @@ print_sysinfo(int n) {
   else if (n == 2) {
     return getNumPages();
   }
-  printf("Error\n");
+  //printf("Error\n");
   return -1;
 }
