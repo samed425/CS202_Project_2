@@ -8,6 +8,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
+struct pinfo;
 
 // bio.c
 void            binit(void);
@@ -106,7 +107,14 @@ void            yield(void);
 int             either_copyout(int user_dst, uint64 dst, void *src, uint64 len);
 int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
-
+void            print_hello(int); //hello 
+//lab1, part1
+int             print_sysinfo(int); //sysinfo
+int             getNumPages();  //function defined in kalloc.c and called in proc.c for lab1 part1
+//lab1, part2
+int             procinfo( struct pinfo*);
+//int               procinfo(int);
+extern int      totalSysCallNums; 
 // swtch.S
 void            swtch(struct context*, struct context*);
 

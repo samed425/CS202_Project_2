@@ -3,8 +3,9 @@
 #include "memlayout.h"
 #include "riscv.h"
 #include "spinlock.h"
-#include "proc.h"
+#include "proc.h" //lab1 procinfo (pinfo) structure is defined there so we can use it here
 #include "defs.h"
+
 
 struct cpu cpus[NCPU];
 
@@ -41,6 +42,68 @@ proc_mapstacks(pagetable_t kpgtbl)
     uint64 va = KSTACK((int) (p - proc));
     kvmmap(kpgtbl, va, (uint64)pa, PGSIZE, PTE_R | PTE_W);
   }
+}
+//Hello new kernel function
+void print_hello(int n){
+  printf("Hello from the kernel space %d\n", n);
+}
+
+//lab1, sysinfo implementation
+int
+print_sysinfo(int n) {
+  int count = 0;
+  if (n == 0) {
+    struct proc *p;
+    for(p = proc; p < &proc[NPROC]; p++){
+      if (p->state == UNUSED || p->state == USED) continue;
+      count++;
+      //if (p->pid ==0){
+        //break; 
+      //}
+    }
+    return count;
+  }
+
+  else if (n == 1) {
+    struct proc *p;
+    for(p = proc; p < &proc[NPROC]; p++){
+      //if (p->state == UNUSED || p->state == USED) continue;
+      count+=p->syscall_total;
+      //printf("%s Process %d: %d\n", p->name, p->pid, p->syscall_total);
+    }
+    return count;
+  }
+
+  else if (n == 2) {
+    return getNumPages();
+  }
+  printf("Error\n");
+  return -1;
+}
+
+//lab1 implementing the sys_procinfo function here
+int procinfo( struct pinfo* p) {
+
+if ( p == 0){
+  return -1; // a null pointer does not point to any valid memory address
+}
+
+struct proc* pr = myproc(); //this is calling the current process which returns the PCB of the current process.
+// we can find the amount of memory used by each process from its PCB.
+struct pinfo param; //create an instance of the pinfo struct. 
+param.ppid = pr->parent->pid; //get the parent pid of the current process pr and assign it to the ppid defined in the structure of pinfo (in proc.h)
+//get the page usage 
+param.page_usage = (PGROUNDUP(pr->sz)) /PGSIZE; //PGSISZE  is the size of a single page in VM,, ronds up sz to the nearest multiple of the page size.
+param.syscall_count = pr->syscall_total; //fill in the information about the total number of system calls the current process has made so far.
+uint64 addr; //64 bit unassigned integer type that usually holds a memory address, such as user virtual memory address
+//this could also be defined in the sysproc.c file.
+//to retiever the pointer type of addr, we use argaddr to do so.
+argaddr(0,&addr);
+if(copyout(pr->pagetable, addr, (char *)&param, sizeof(param)) < 0){
+  return -1; //if it fails to copy the results back to the caller process.
+}
+return 0; //indicates success.
+
 }
 
 // initialize the proc table.
@@ -124,7 +187,7 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
-
+  p->syscall_total = 0; //a new process data field to manage system call counts based on a per-process basis. 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
     freeproc(p);

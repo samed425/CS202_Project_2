@@ -20,3 +20,6 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+#define SYS_hello  22 // hello system call
+#define SYS_info   23  //sysninfo lab1, part1
+#define SYS_procinfo 24 //lab1,part2

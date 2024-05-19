@@ -91,6 +91,8 @@ struct proc {
   int killed;                  // If non-zero, have been killed
   int xstate;                  // Exit status to be returned to parent's wait
   int pid;                     // Process ID
+  int syscall_total;            // lab1: procinfo need this for the counting of syscalls  a current process would make.
+                                //this is also used for part 1 as well, sysinfo.
 
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
@@ -104,4 +106,11 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+};
+
+// lab1 procinfo struct defined
+struct pinfo {
+  int ppid; //pid of the parent process
+  int syscall_count; //counts the total number of system calls that the current process has
+  int page_usage; // the current process's memory size in pages
 };

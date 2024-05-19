@@ -89,3 +89,29 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+//hello syscall definition
+uint64 
+sys_hello(void) {
+  int n;
+  argint(0,&n);
+  print_hello(n);
+  return 0;
+}
+
+//sys call definition for procinfo lab1, part 2
+uint64
+sys_procinfo(void){
+  struct pinfo* p;
+  argaddr(0, (uint64*) &p);
+  return procinfo(p);
+}
+
+//sys call definition for sys_info lab1, part 1
+uint64
+sys_info(void)
+{
+  int n;
+  argint(0, &n);
+  return print_sysinfo(n);
+}
