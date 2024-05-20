@@ -23,6 +23,8 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int info(int); //sysinfo
+int sched_statistics(void); //sched_statistics
+int sched_tickets(int); //sched_tickets
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -125,6 +125,8 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
+  p->tickets = 10000;
+  p->ticks = 0;
 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
@@ -460,6 +462,7 @@ scheduler(void)
         // to release its lock and then reacquire it
         // before jumping back to us.
         p->state = RUNNING;
+        p->ticks++;
         c->proc = p;
         swtch(&c->context, &p->context);
 
@@ -710,4 +713,19 @@ print_sysinfo(int n) {
   }
   //printf("Error\n");
   return -1;
+}
+
+int print_sched_statistics(void) {
+    struct proc *p;
+    for(p = proc; p < &proc[NPROC]; p++){
+        if (p->state == UNUSED || p->state == USED) continue;
+        printf("%d(%s): tickets: %d, ticks: %d\n", p->pid, p->name, p->tickets, p->ticks);
+    }
+  return 0;
+}
+
+int set_tickets(int n) {
+    struct proc *p = myproc();
+    p->tickets = n;
+    return 0;
 }

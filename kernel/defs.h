@@ -108,6 +108,8 @@ int             either_copyout(int user_dst, uint64 dst, void *src, uint64 len);
 int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
 int             print_sysinfo(int); //sysinfo
+int             print_sched_statistics(void); //sched_statistics
+int             set_tickets(int); //sched_tickets
 
 // swtch.S
 void            swtch(struct context*, struct context*);

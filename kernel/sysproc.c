@@ -98,3 +98,17 @@ sys_info(void)
   //int x = print_info(n);
   return print_sysinfo(n);
 }
+
+uint64
+sys_sched_statistics(void)
+{
+  return print_sched_statistics();
+}
+
+uint64
+sys_sched_tickets(void)
+{
+  int n;
+  argint(0, &n);
+  return set_tickets(n);
+}
