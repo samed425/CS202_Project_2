@@ -245,6 +245,9 @@ freeproc(struct proc *p)
   p->trapframe = 0;
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
+  p->tickets = 0;
+  p->ticks = 0;
+  //p->pass = 0 for stride
   p->pagetable = 0;
   p->sz = 0;
   p->pid = 0;
@@ -551,8 +554,9 @@ scheduler(void)
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
-    int num_tickets = 0; //total number of tickets initialization
-    int winner; //the winner process based on the numbe of tickets it holds.
+    int num_tickets = 0;
+    int winner;
+    int found_winner = 0; //once the winner is found, loop needs to break and not check other processes.
 
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);  //lock 
@@ -575,17 +579,22 @@ scheduler(void)
         if(curr_ticketcount >= winner){
           p->state = RUNNING;
           //increment the ticks, initialized in proc.h
+          found_winner += 1; //a winner has been found.
           p->ticks = p->ticks + 1;
           
           c->proc = p;
           swtch(&c->context, &p->context);
           c->proc = 0;
 
-      } 
+        } 
 
-    }
-    release(&p->lock);
-    break;
+      }
+      release(&p->lock);
+      if (found_winner == 1){
+        found_winner = 0;
+        break;
+        //once the winner is found and scheduled, the loop breaks and varibale is set back to 0 and it will discontinue checking other processes. 
+      }
 
   }
 
