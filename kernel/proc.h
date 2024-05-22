@@ -94,8 +94,9 @@ struct proc {
   int syscall_total;            // lab1: procinfo needs this for the counting of syscalls  a current process would make.
                                 //this is also used for part 1 as well, sysinfo.
   int tickets;
-  int ticks;                    //lab 2
-  int pass;                     //need this for the Stride Scheduler
+  int ticks;                    // lab 2
+  int pass;                     // need this for the Stride Scheduler
+  int stride;                   // for stride scheduler
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
 

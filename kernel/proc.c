@@ -6,6 +6,7 @@
 #include "proc.h" //lab1 procinfo (pinfo) structure is defined there so we can use it here
 #include "defs.h"
 
+const int K = 10000; // lab 2 constant K value for stride scheduling
 
 struct cpu cpus[NCPU];
 
@@ -120,6 +121,7 @@ int set_tickets(int n) {
     if(n < 0) { n = 1;}
     else if (n > 10000){n = 10000;}
     p->tickets = n;
+    p->stride = K / p->tickets;
     return 0;
 }
 
@@ -183,7 +185,6 @@ allocpid()
   return pid;
 }
 
-
 // Look in the process table for an UNUSED proc.
 // If found, initialize state required to run in the kernel,
 // and return with p->lock held.
@@ -210,6 +211,8 @@ found:
   // Allocate a trapframe page.
   p->tickets = 10000;
   p->ticks = 0;
+  p->stride = K / p->tickets;
+  p->pass = p->stride;
  
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
     freeproc(p);
@@ -529,7 +532,7 @@ wait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
-//lab 2 random generator function needed for the lottery scheduling
+// lab 2 random generator function needed for the lottery scheduling
 // pseudo random generator (https://stackoverflow.com/a/7603688)
 unsigned short lfsr = 0xACE1u;
 unsigned short bit;
@@ -537,7 +540,7 @@ unsigned short rand()
 {
 bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5)) & 1;
 return lfsr = (lfsr >> 1) | (bit << 15);
-//returns an unsigned short range. 
+// returns an unsigned short range. 
 }
 
 
@@ -605,6 +608,48 @@ scheduler(void)
 
 #elif defined (STRIDE)
 //code for stride implementation
+void
+scheduler(void)
+{
+  struct proc *p;
+  struct cpu *c = mycpu();
+  c->proc = 0;
+  struct proc *min_proc;
+  int min_pass;
+
+  for(;;){
+    // Avoid deadlock by ensuring that devices can interrupt.
+    intr_on();
+
+    min_pass = 2147483647; // INT_MAX
+    min_proc = 0;
+
+
+    // select process with smallest pass
+    for(p = proc; p < &proc[NPROC]; p++) {
+      if(p->state == RUNNABLE) {
+        if(p->pass < min_pass) {
+          // printf("pass = %d \n", p->pass);
+          min_pass = p->pass;
+          min_proc = p;
+        }
+      }
+    }
+
+    if(min_proc) {
+    // give smallest pass process the lock and update its pass and ticks
+      p = min_proc;
+      acquire(&p->lock);
+      p->state = RUNNING;
+      p->pass += p->stride;
+      p->ticks++;
+      c->proc = p;
+      swtch(&c->context, &p->context);
+      c->proc = 0;
+      release(&p->lock);
+    }
+  }
+}
 #else
 // xv6 default round-robin scheduler.
 void
