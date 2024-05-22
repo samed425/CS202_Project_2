@@ -579,7 +579,7 @@ scheduler(void)
       if(p->state == RUNNABLE) {
         curr_ticketcount += p->tickets;
 
-        if(curr_ticketcount >= winner){
+        if(curr_ticketcount > winner){
           p->state = RUNNING;
           //increment the ticks, initialized in proc.h
           found_winner += 1; //a winner has been found.
