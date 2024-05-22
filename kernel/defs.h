@@ -115,6 +115,11 @@ int             getNumPages();  //function defined in kalloc.c and called in pro
 int             procinfo( struct pinfo*);
 //int               procinfo(int);
 extern int      totalSysCallNums; 
+//Lab2, part 1 system calls
+int             print_sched_statistics(void); //sched_statistics
+int             set_tickets(int); //sched_tickets
+
+
 // swtch.S
 void            swtch(struct context*, struct context*);
 

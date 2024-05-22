@@ -26,6 +26,9 @@ int hello(int); //hello
 //int procinfo(int);
 int info(int); //sysinfo /lab1. part1
 int procinfo( struct pinfo*); //lab1 part2
+//lab2, part 1
+int sched_statistics(void); //sched_statistics
+int sched_tickets(int); //sched_tickets
 
 // ulib.c
 int stat(const char*, struct stat*);

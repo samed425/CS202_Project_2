@@ -87,7 +87,6 @@ int procinfo( struct pinfo* p) {
 if ( p == 0){
   return -1; // a null pointer does not point to any valid memory address
 }
-
 struct proc* pr = myproc(); //this is calling the current process which returns the PCB of the current process.
 // we can find the amount of memory used by each process from its PCB.
 struct pinfo param; //create an instance of the pinfo struct. 
@@ -105,6 +104,25 @@ if(copyout(pr->pagetable, addr, (char *)&param, sizeof(param)) < 0){
 return 0; //indicates success.
 
 }
+//lab 2 part 1
+int print_sched_statistics(void) {
+    struct proc *p;
+    for(p = proc; p < &proc[NPROC]; p++){
+        if (p->state == UNUSED || p->state == USED) continue;
+        printf("%d(%s): tickets: %d, ticks: %d\n", p->pid, p->name, p->tickets, p->ticks);
+    }
+  return 0;
+}
+
+int set_tickets(int n) {
+    struct proc *p = myproc(); //current process
+    //setting the boundary
+    if(n < 0) { n = 1;}
+    else if (n > 10000){n = 10000;}
+    p->tickets = n;
+    return 0;
+}
+
 
 // initialize the proc table.
 void
@@ -165,6 +183,7 @@ allocpid()
   return pid;
 }
 
+
 // Look in the process table for an UNUSED proc.
 // If found, initialize state required to run in the kernel,
 // and return with p->lock held.
@@ -189,6 +208,9 @@ found:
   p->state = USED;
   p->syscall_total = 0; //a new process data field to manage system call counts based on a per-process basis. 
   // Allocate a trapframe page.
+  p->tickets = 10000;
+  p->ticks = 0;
+ 
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
     freeproc(p);
     release(&p->lock);
@@ -496,7 +518,7 @@ wait(uint64 addr)
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
 }
-
+// List of all 3 different types of schedulers. 
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -504,6 +526,78 @@ wait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
+//lab 2 random generator function needed for the lottery scheduling
+// pseudo random generator (https://stackoverflow.com/a/7603688)
+unsigned short lfsr = 0xACE1u;
+unsigned short bit;
+unsigned short rand()
+{
+bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5)) & 1;
+return lfsr = (lfsr >> 1) | (bit << 15);
+//returns an unsigned short range. 
+}
+
+
+#if defined(LOTTERY)
+//code for lottery implementation
+void
+scheduler(void)
+{
+  
+  struct proc *p;
+  struct cpu *c = mycpu();
+  c->proc = 0;
+
+  for(;;){
+    // Avoid deadlock by ensuring that devices can interrupt.
+    intr_on();
+    int num_tickets = 0; //total number of tickets initialization
+    int winner; //the winner process based on the numbe of tickets it holds.
+
+    for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);  //lock 
+      if(p->state == RUNNABLE) {
+        num_tickets += p->tickets; //tickets initialized in proc.h
+        // determining what's the total number of tickets need it for the rand selection.
+      }
+
+      release(&p->lock); //release the lock
+    } //end of first loop
+
+    winner = rand() % num_tickets;  //a winner ticket will be chosen.
+    int curr_ticketcount = 0; //current number of tickets held by a process, need for the process selection.
+
+    for(p = proc; p < &proc[NPROC]; p++) { //iterate through all the processes
+      acquire(&p->lock);
+      if(p->state == RUNNABLE) {
+        curr_ticketcount += p->tickets;
+
+        if(curr_ticketcount >= winner){
+          p->state = RUNNING;
+          //increment the ticks, initialized in proc.h
+          p->ticks = p->ticks + 1;
+          
+          c->proc = p;
+          swtch(&c->context, &p->context);
+          c->proc = 0;
+
+      } 
+
+    }
+    release(&p->lock);
+    break;
+
+  }
+
+} 
+
+} // end of lottery scheduler function.
+
+
+#elif defined (STRIDE)
+//code for stride implementation
+#else
+// xv6 default round-robin scheduler.
 void
 scheduler(void)
 {
@@ -522,6 +616,7 @@ scheduler(void)
         // to release its lock and then reacquire it
         // before jumping back to us.
         p->state = RUNNING;
+        p->ticks++;
         c->proc = p;
         swtch(&c->context, &p->context);
 
@@ -533,6 +628,7 @@ scheduler(void)
     }
   }
 }
+#endif  //end of scheduling implementations
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores

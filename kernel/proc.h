@@ -91,9 +91,11 @@ struct proc {
   int killed;                  // If non-zero, have been killed
   int xstate;                  // Exit status to be returned to parent's wait
   int pid;                     // Process ID
-  int syscall_total;            // lab1: procinfo need this for the counting of syscalls  a current process would make.
+  int syscall_total;            // lab1: procinfo needs this for the counting of syscalls  a current process would make.
                                 //this is also used for part 1 as well, sysinfo.
-
+  int tickets;
+  int ticks;                    //lab 2
+  int pass;                     //need this for the Stride Scheduler
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
 

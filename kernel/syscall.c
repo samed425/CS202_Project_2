@@ -104,6 +104,8 @@ extern uint64 sys_close(void);
 extern uint64 sys_hello(void); //hello sys call declaration
 extern uint64 sys_info(void);  //lab1, part 1, sysinfo declaration
 extern uint64 sys_procinfo(void); //lab1, part 2 delcaration of the system call
+extern uint64 sys_sched_statistics(void); //lab2, part 1
+extern uint64 sys_sched_tickets(void); //lab2, part 1
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -132,6 +134,8 @@ static uint64 (*syscalls[])(void) = {
 [SYS_hello]   sys_hello,  //Hello: syscall entry
 [SYS_info]    sys_info,  //lab1, part1
 [SYS_procinfo] sys_procinfo, //lab1 part 2
+[SYS_sched_statistics] sys_sched_statistics, //lab2 part 1
+[SYS_sched_tickets] sys_sched_tickets, //lab2 part 1
 
 };
 int totalSysCallNums = 0; //initliaze first

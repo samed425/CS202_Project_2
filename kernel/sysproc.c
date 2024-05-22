@@ -115,3 +115,18 @@ sys_info(void)
   argint(0, &n);
   return print_sysinfo(n);
 }
+//lab2, part 1
+uint64
+sys_sched_statistics(void)
+{
+  return print_sched_statistics();
+  return 0; 
+}
+
+uint64
+sys_sched_tickets(void)
+{
+  int n;
+  argint(0, &n);
+  return set_tickets(n);
+}
